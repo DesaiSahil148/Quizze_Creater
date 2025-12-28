@@ -9,10 +9,13 @@ export default function Quiz({ onFinish }) {
   const [answers, setAnswers] = useState({})
 
   useEffect(() => {
-    export const BACKEND_URL = "https://quizze-creater-backend.onrender.com"
-
-
-      .then(res => res.json())
+    fetch(`${BACKEND_URL}/questions/2`)
+      .then(res => {
+        if (!res.ok) {
+          throw new Error("Failed to fetch questions")
+        }
+        return res.json()
+      })
       .then(data => {
         console.log("Fetched questions:", data)
         setQuestions(data)
@@ -29,21 +32,27 @@ export default function Quiz({ onFinish }) {
   }
 
   const handleSubmit = async () => {
-    const res = await fetch(`${BACKEND_URL}/submit-answers/`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        quiz_id: 2,
-        answers
+    try {
+      const res = await fetch(`${BACKEND_URL}/submit-answers/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          quiz_id: 2,
+          answers
+        })
       })
-    })
 
-    const data = await res.json()
-    localStorage.setItem("result", JSON.stringify(data))
-    onFinish()
+      const data = await res.json()
+      localStorage.setItem("result", JSON.stringify(data))
+      onFinish()
+    } catch (err) {
+      console.error("Submit error:", err)
+    }
   }
 
-  if (loading) return <PenLoader text="Loading Questions..." />
+  if (loading) {
+    return <PenLoader text="Loading Questions..." />
+  }
 
   return (
     <div className="min-h-screen bg-gray-100 flex justify-center py-10">
@@ -54,15 +63,16 @@ export default function Quiz({ onFinish }) {
           <Timer />
         </div>
 
-        {/* 🔴 DEBUG SECTION (IMPORTANT) */}
+        {/* 🔴 DEBUG (REMOVE AFTER CONFIRMING DEPLOYMENT) */}
         <p className="text-red-600 font-semibold mb-2">
           Questions count: {questions.length}
         </p>
 
-        <pre className="text-xs bg-gray-200 p-3 rounded mb-6 overflow-auto">
-          {JSON.stringify(questions, null, 2)}
-        </pre>
-        {/* 🔴 DEBUG SECTION END */}
+        {questions.length === 0 && (
+          <p className="text-center text-gray-600 mt-10">
+            No questions available for this quiz.
+          </p>
+        )}
 
         {questions.map((q, index) => (
           <div key={q.id} className="bg-white p-6 rounded-xl shadow mb-6">
