@@ -9,7 +9,8 @@ export default function Quiz({ onFinish }) {
   const [answers, setAnswers] = useState({})
 
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/questions/2")
+    export const BACKEND_URL = "https://quizze-creater-backend.onrender.com"
+
 
       .then(res => res.json())
       .then(data => {
